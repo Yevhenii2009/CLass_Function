@@ -3,74 +3,77 @@ using namespace std;
 
 class AgeChecker {
 public:
-    int ages[3] = { 0, 0, 0 }; // child, teen, adult
+    int ages[3] = { 0, 0, 0 };
 
-    // Функция определения категории
-    string checkCategory(int age) const {
+    string checkCategory(int age) {
         if (age <= ages[0]) return "You are child\n";
         if (age <= ages[1]) return "You are teenager\n";
         return "You are adult\n";
     }
 };
 
-int main() {
-    AgeChecker ac;
-    int age = 0;
-    string inputMessage = "Enter max age for ";
-    string prompts[3] = { "child: ", "teenager: ", "adult: " };
-    string errorMessage = "You are mocking the system.\n";
-    string invalidMessage = "Invalid. Try again.\n";
-    int errors = 0;
+// Функция ввода максимального возраста для категории
+int readLimit(string message, int minValue, int& errors) {
+    int value;
 
-    // Ввод возрастных категорий
-    for (int i = 0; i < 3; i++) {
-        int input = 0;
+    while (errors < 10) {
+        cout << message;
+        cin >> value;
 
-        while (errors < 10) {
-            cout << inputMessage << prompts[i];
-            cin >> input;
-
-            if (cin.fail()) {
-                cin.clear(); cin.ignore(10000, '\n');
-                errors++; cout << invalidMessage;
-            }
-            else if (i > 0 && input <= ac.ages[i - 1]) {
-                errors++; cout << invalidMessage;
-            }
-            else if (input <= 0) {
-                errors++; cout << invalidMessage;
-            }
-            else break;
+        if (!cin.fail() && value > minValue) {
+            return value;
         }
 
-        if (errors >= 10) {
-            cout << errorMessage;
-            return 0;
-        }
-
-        ac.ages[i] = input;
+        cin.clear();
+        cin.ignore(10000, '\n');
+        cout << "Invalid. Try again.\n";
+        errors++;
     }
 
-    // Ввод возраста человека
+    return -1;
+}
+
+// Функция ввода возраста человека
+int readAge(int maxAdult, int& errors) {
+    int age;
+
     while (errors < 10) {
-        cout << "Enter person's age:\n";
+        cout << "Enter person's age: ";
         cin >> age;
 
-        if (cin.fail()) {
-            cin.clear(); cin.ignore(10000, '\n');
-            errors++; cout << invalidMessage;
+        if (!cin.fail() && age >= 0 && age <= maxAdult) {
+            return age;
         }
-        else if (age < 0 || age > ac.ages[2]) {
-            errors++; cout << invalidMessage;
-        }
-        else break;
+
+        cin.clear();
+        cin.ignore(10000, '\n');
+        cout << "Invalid. Try again.\n";
+        errors++;
     }
 
-    if (errors >= 10) {
-        cout << errorMessage;
-        return 0;
-    }
+    return -1;
+}
 
-    // Используем функцию из класса
+// Функция вывода результата
+void printResult(AgeChecker& ac, int age) {
     cout << ac.checkCategory(age);
+}
+
+int main() {
+    AgeChecker ac;
+    int errors = 0;
+
+    ac.ages[0] = readLimit("Enter max age for child: ", 0, errors);
+    if (errors >= 10) { cout << "You are mocking the system.\n"; return 0; }
+
+    ac.ages[1] = readLimit("Enter max age for teenager: ", ac.ages[0], errors);
+    if (errors >= 10) { cout << "You are mocking the system.\n"; return 0; }
+
+    ac.ages[2] = readLimit("Enter max age for adult: ", ac.ages[1], errors);
+    if (errors >= 10) { cout << "You are mocking the system.\n"; return 0; }
+
+    int age = readAge(ac.ages[2], errors);
+    if (errors >= 10) { cout << "You are mocking the system.\n"; return 0; }
+
+    printResult(ac, age);
 }
